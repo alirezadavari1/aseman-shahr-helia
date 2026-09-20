@@ -9,6 +9,7 @@ import { CustomerModal } from "./components/CustomerModal";
 import { DepositModal } from "./components/DepositModal";
 import { NoticeModal } from "./components/NoticeModal";
 import { DateRangeFilterModal } from "./components/DateRangeFilterModal";
+import { CustomerHistoryModal } from "./components/CustomerHistoryModal";
 import { Icon } from "./components/Icons";
 import { useShowMore } from "./utils/useShowMore";
 import {
@@ -30,7 +31,7 @@ import "./styles.css";
 
 export default function App() {
   const [state, setState] = useState(loadState);
-  const [modal, setModal] = useState(null); // { type: 'customer'|'deposit'|'notice', editId?, customerId? }
+  const [modal, setModal] = useState(null); // { type: 'customer'|'deposit'|'notice'|'customerHistory', editId?, customerId? }
   const [clock, setClock] = useState("");
   const [todayJalali, setTodayJalali] = useState([1403, 1, 1]);
   const [toast, setToast] = useState(null);
@@ -104,6 +105,21 @@ export default function App() {
       .filter((c) => c.depositCount > 0 || !depositFilter)
       .sort((a, b) => b.points - a.points);
   }, [state.customers, state.deposits, depositFilter, clock]);
+
+  /* ----- تاریخچه‌ی کامل واریزی‌های هر مشتری، همیشه تا همین الان (مستقل از فیلتر/جستجوی ستون واریزی) ----- */
+  const allDepositsWithPoints = useMemo(() => {
+    const now = new Date();
+    return state.deposits
+      .map((d) => ({
+        ...d,
+        points: computeAutoPoints(d.amount, d.jy, d.jm, d.jd, now) + (Number(d.manualPoints) || 0),
+      }))
+      .sort((a, b) => {
+        const da = jalaliDateObjFromParts(a.jy, a.jm, a.jd).getTime();
+        const db = jalaliDateObjFromParts(b.jy, b.jm, b.jd).getTime();
+        return db - da;
+      });
+  }, [state.deposits, clock]);
 
   /* ----- لیست تک‌تک فیش‌های واریزی (هر فیش جداگانه، نه تجمیع‌شده) ----- */
   const [depositSearch, setDepositSearch] = useState("");
@@ -368,6 +384,7 @@ export default function App() {
                   rank={displayedCustomers.findIndex((x) => x.id === c.id) + 1}
                   onEdit={() => setModal({ type: "customer", editId: c.id })}
                   onDelete={() => deleteCustomer(c.id)}
+                  onViewHistory={() => setModal({ type: "customerHistory", editId: c.id })}
                 />
               ))}
               {customerShowMore.hasMore && (
@@ -528,6 +545,22 @@ export default function App() {
           }}
         />
       )}
+
+      {modal?.type === "customerHistory" &&
+        (() => {
+          const historyCustomer = state.customers.find((c) => c.id === modal.editId);
+          if (!historyCustomer) return null;
+          const historyDeposits = allDepositsWithPoints.filter((d) => d.customerId === modal.editId);
+          return (
+            <CustomerHistoryModal
+              customer={historyCustomer}
+              deposits={historyDeposits}
+              onClose={() => setModal(null)}
+              onEditDeposit={(depositId) => setModal({ type: "deposit", editId: depositId })}
+              onDeleteDeposit={(depositId) => deleteDeposit(depositId)}
+            />
+          );
+        })()}
 
       {modal?.type === "deposit" && (
         <DepositModal

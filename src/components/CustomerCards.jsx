@@ -3,7 +3,7 @@ import { Icon } from "./Icons";
 import { formatToman, formatJalali } from "../utils/dateUtils";
 import { ElapsedTimer } from "./ElapsedTimer";
 
-export function CustomerCard({ customer, rank, onEdit, onDelete }) {
+export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory }) {
   return (
     <div className="card card-pop">
       {rank <= 3 && customer.points > 0 && (
@@ -42,6 +42,9 @@ export function CustomerCard({ customer, rank, onEdit, onDelete }) {
         </div>
       </div>
       <div className="card-actions">
+        <button className="icon-btn" onClick={onViewHistory} title="تاریخچه‌ی واریزی‌ها">
+          <Icon.history />
+        </button>
         <button className="icon-btn" onClick={onEdit} title="ویرایش">
           <Icon.edit />
         </button>

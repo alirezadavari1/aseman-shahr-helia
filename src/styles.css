@@ -313,6 +313,7 @@ input:focus, select:focus, button:focus-visible {
   background: #fffdfb; border-radius: 24px; padding: 26px; width: 100%; max-width: 440px;
   max-height: 88vh; overflow-y: auto; box-shadow: 0 30px 70px -20px rgba(50,30,80,0.45);
 }
+.modal-wide { max-width: 620px; }
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .modal-title { margin: 0; font-size: 19px; font-weight: 800; }
 .close-btn {
@@ -348,6 +349,33 @@ input:focus, select:focus, button:focus-visible {
   border: 1.5px solid #f3d6d6; background: #fff6f6; color: #c85a5a; padding: 11px; border-radius: 14px;
   font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
 }
+
+/* ---------- تاریخچه‌ی واریزی‌های مشتری ---------- */
+.history-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px;
+}
+.history-summary-item {
+  background: #f6f1fb; border-radius: 14px; padding: 12px 10px; text-align: center;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.history-summary-value { font-size: 14.5px; font-weight: 800; color: #3a2f4d; }
+.history-summary-label { font-size: 11px; color: #8577a0; }
+.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 55vh; overflow-y: auto; padding-left: 2px; }
+.history-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #fff; border: 1px solid #f0e8f7; border-radius: 16px; padding: 12px 14px;
+  box-shadow: 0 6px 16px -12px rgba(90,60,130,0.25);
+}
+.history-item-index {
+  width: 24px; height: 24px; border-radius: 50%; background: #f0e2f7; color: #8a6fb0;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.history-item-main { flex: 1; min-width: 0; }
+.history-item-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.history-item-receipt { font-weight: 700; font-size: 14px; color: #3a2f4d; }
+.history-item-amount { font-weight: 700; font-size: 13.5px; color: #5fb4a2; }
+.history-item-meta { display: flex; flex-wrap: wrap; gap: 5px 8px; margin-top: 5px; }
+.history-item-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
 .reset-btn {
   margin-top: 4px; width: 100%; border: 1.5px solid #e2d6ef; background: #fff; color: #6f6288;
   padding: 11px; border-radius: 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;

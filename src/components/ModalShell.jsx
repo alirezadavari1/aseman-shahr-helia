@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Icon } from "./Icons";
 
-export function ModalShell({ title, onClose, children, onDelete }) {
+export function ModalShell({ title, onClose, children, onDelete, wide }) {
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -10,7 +10,7 @@ export function ModalShell({ title, onClose, children, onDelete }) {
 
   return (
     <div className="overlay overlay-in" onClick={onClose}>
-      <div className="modal modal-in" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal modal-in ${wide ? "modal-wide" : ""}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h3 className="modal-title">{title}</h3>
           <button className="close-btn" onClick={onClose}>
