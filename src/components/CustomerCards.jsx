@@ -1,9 +1,9 @@
 import React from "react";
 import { Icon } from "./Icons";
-import { formatToman, formatJalali } from "../utils/dateUtils";
+import { formatRial, formatJalali } from "../utils/dateUtils";
 import { ElapsedTimer } from "./ElapsedTimer";
 
-export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory }) {
+export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory, onPrint }) {
   return (
     <div className="card card-pop">
       {rank <= 3 && customer.points > 0 && (
@@ -21,13 +21,13 @@ export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory }
         <div className="card-meta-row">
           <span className="card-meta-tag">پرونده: {customer.caseNumber || "—"}</span>
           {customer.lastDeposit ? (
-            <span className="card-meta-tag">آخرین واریزی: {formatToman(customer.lastDeposit.amount)}</span>
+            <span className="card-meta-tag">آخرین واریزی: {formatRial(customer.lastDeposit.amount)}</span>
           ) : (
             <span className="card-meta-tag">بدون واریزی</span>
           )}
         </div>
         <div className="card-meta-row" style={{ marginTop: 2 }}>
-          <span className="card-meta-tag total-deposit-tag">مجموع واریزی: {formatToman(customer.totalDeposits)}</span>
+          <span className="card-meta-tag total-deposit-tag">مجموع واریزی: {formatRial(customer.totalDeposits)}</span>
         </div>
         <div className="points-row">
           <Icon.star color="#e0a458" />
@@ -45,6 +45,9 @@ export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory }
         <button className="icon-btn" onClick={onViewHistory} title="تاریخچه‌ی واریزی‌ها">
           <Icon.history />
         </button>
+        <button className="icon-btn" onClick={onPrint} title="چاپ پرونده‌ی مشتری">
+          <Icon.print />
+        </button>
         <button className="icon-btn" onClick={onEdit} title="ویرایش">
           <Icon.edit />
         </button>
@@ -58,14 +61,20 @@ export function CustomerCard({ customer, rank, onEdit, onDelete, onViewHistory }
 
 /** کارت هر فیش واریزی به‌صورت جداگانه (نه تجمیع‌شده روی مشتری) */
 export function DepositReceiptCard({ deposit, customerName, onEdit, onDelete }) {
+  const isCash = deposit.depositType !== "noncash";
   return (
     <div className="card card-pop">
       <div className="card-main">
-        <div className="card-name">فیش: {deposit.receiptNumber || "—"}</div>
+        <div className="card-name">
+          {isCash ? `فیش: ${deposit.receiptNumber || "—"}` : `غیر نقدی: ${deposit.description || "—"}`}
+        </div>
         <div className="card-meta-row">
           <span className="card-meta-tag">{customerName}</span>
-          <span className="card-meta-tag">واریزی: {formatToman(deposit.amount)}</span>
+          <span className="card-meta-tag">واریزی: {formatRial(deposit.amount)}</span>
           <span className="card-meta-tag">{formatJalali(deposit.jy, deposit.jm, deposit.jd)}</span>
+          <span className={`card-meta-tag deposit-type-tag ${isCash ? "cash" : "noncash"}`}>
+            {isCash ? "نقدی" : "غیر نقدی"}
+          </span>
         </div>
         <div className="points-row">
           <Icon.star color="#e0a458" />
@@ -98,7 +107,7 @@ export function NoticeCard({ notice, onEdit, onDelete }) {
       <div className="card-main">
         <div className="card-name">ابلاغیه {notice.noticeNumber}</div>
         <div className="card-meta-row">
-          <span className="card-meta-tag">{formatToman(notice.amount)}</span>
+          <span className="card-meta-tag">{formatRial(notice.amount)}</span>
           <span className="card-meta-tag">{formatJalali(notice.jy, notice.jm, notice.jd)}</span>
         </div>
       </div>

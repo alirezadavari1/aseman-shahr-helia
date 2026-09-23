@@ -43,6 +43,32 @@ export function Field({ label, children }) {
   );
 }
 
+/**
+ * ورودی مبلغ با جداکننده‌ی زنده‌ی هزارگان (کاما) هنگام تایپ —
+ * چون مبالغ به ریال هستند و صفرهای زیاد شمردنشان را سخت می‌کند.
+ * مقدار خام (بدون کاما) به‌صورت رشته‌ی عددی به onChange داده می‌شود.
+ */
+export function FormattedAmountInput({ value, onChange, placeholder, required }) {
+  const digitsOnly = (v) => String(v ?? "").replace(/[^\d]/g, "");
+  const withCommas = (v) => {
+    const clean = digitsOnly(v);
+    if (!clean) return "";
+    return Number(clean).toLocaleString("en-US");
+  };
+
+  return (
+    <input
+      className="input ltr-input"
+      type="text"
+      inputMode="numeric"
+      placeholder={placeholder}
+      required={required}
+      value={withCommas(value)}
+      onChange={(e) => onChange(digitsOnly(e.target.value))}
+    />
+  );
+}
+
 export function JalaliDateFields({ jy, jm, jd, onChange }) {
   return (
     <div className="jalali-row">

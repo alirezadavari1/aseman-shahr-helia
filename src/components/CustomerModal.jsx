@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ModalShell } from "./ModalShell";
 import { Field, JalaliDateFields } from "./Shared";
-import { formatToman, tehranJalaliParts } from "../utils/dateUtils";
+import { formatRial, tehranJalaliParts } from "../utils/dateUtils";
 
 export function CustomerModal({ initial, latestDeposit, totalDeposits, onClose, onSubmit }) {
   const today = tehranJalaliParts(new Date());
@@ -86,9 +86,9 @@ export function CustomerModal({ initial, latestDeposit, totalDeposits, onClose, 
             </div>
             <div className="preview-line">پرونده: {form.caseNumber || "—"}</div>
             <div className="preview-line">
-              آخرین واریزی: {latestDeposit ? formatToman(latestDeposit.amount) : "—"}
+              آخرین واریزی: {latestDeposit ? formatRial(latestDeposit.amount) : "—"}
             </div>
-            <div className="preview-line">مجموع واریزی: {formatToman(totalDeposits || 0)}</div>
+            <div className="preview-line">مجموع واریزی: {formatRial(totalDeposits || 0)}</div>
           </div>
         )}
 

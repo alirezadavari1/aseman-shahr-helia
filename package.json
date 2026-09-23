@@ -3,10 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:build-renderer": "vite build --base ./ --outDir dist-electron",
+    "electron:start": "npm run electron:build-renderer && electron .",
+    "electron:dist": "npm run electron:build-renderer && electron-builder"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -14,6 +18,36 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "electron": "22.3.27",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "ir.asemanshahrhelia.app",
+    "productName": "AsemanShahrHelia",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraFiles": [
+      { "from": "build/win-fallback", "to": "." }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "zip", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh"
+    }
   }
 }

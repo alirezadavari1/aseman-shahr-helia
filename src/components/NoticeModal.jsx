@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ModalShell } from "./ModalShell";
-import { Field, JalaliDateFields } from "./Shared";
+import { Field, JalaliDateFields, FormattedAmountInput } from "./Shared";
 import { tehranJalaliParts } from "../utils/dateUtils";
 
 export function NoticeModal({ initial, onClose, onSubmit, onDelete }) {
@@ -33,8 +33,12 @@ export function NoticeModal({ initial, onClose, onSubmit, onDelete }) {
         <Field label="شماره ابلاغیه">
           <input className="input" value={form.noticeNumber} onChange={set("noticeNumber")} required />
         </Field>
-        <Field label="مبلغ اعمال‌شده (تومان)">
-          <input className="input" type="number" value={form.amount} onChange={set("amount")} required inputMode="numeric" />
+        <Field label="مبلغ اعمال‌شده (ریال)">
+          <FormattedAmountInput
+            value={form.amount}
+            onChange={(v) => setForm((f) => ({ ...f, amount: v }))}
+            required
+          />
         </Field>
         <Field label="تاریخ (شمسی)">
           <JalaliDateFields jy={form.jy} jm={form.jm} jd={form.jd} onChange={(v) => setForm((f) => ({ ...f, ...v }))} />

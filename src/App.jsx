@@ -12,20 +12,25 @@ import { DateRangeFilterModal } from "./components/DateRangeFilterModal";
 import { CustomerHistoryModal } from "./components/CustomerHistoryModal";
 import { Icon } from "./components/Icons";
 import { useShowMore } from "./utils/useShowMore";
+import { printCustomersList, printCustomerDetail } from "./utils/print";
 import {
   jalaliDateObjFromParts,
   computeAutoPoints,
   tehranClockFormatter,
   tehranJalaliParts,
   formatJalali,
-  formatToman,
+  formatRial,
+  appNow,
+  setClockOffset,
 } from "./utils/dateUtils";
 import {
   loadState,
+  loadStateAsync,
   saveState,
   exportStateToFile,
   importStateFromFile,
   mergeImportedState,
+  isElectron,
 } from "./utils/storage";
 import "./styles.css";
 
@@ -36,6 +41,40 @@ export default function App() {
   const [todayJalali, setTodayJalali] = useState([1403, 1, 1]);
   const [toast, setToast] = useState(null);
 
+  // بارگذاری واقعی اطلاعات: در نسخه‌ی دسکتاپ از فایل اصلی روی دیسک (نه فقط حافظه‌ی مرورگر)
+  useEffect(() => {
+    let cancelled = false;
+    loadStateAsync().then((loaded) => {
+      if (!cancelled && loaded) setState(loaded);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // همگام‌سازی «زمان قابل اعتماد»: هنگام باز شدن برنامه و هر ۱۰ دقیقه یک‌بار،
+  // تا هم وضعیت آنلاین/آفلاین و هم درست یا خراب‌بودن ساعت سیستم پوشش داده شود.
+  useEffect(() => {
+    if (!isElectron()) return;
+    let cancelled = false;
+    const sync = async () => {
+      try {
+        const trustedMs = await window.electronAPI.getTrustedNow();
+        if (!cancelled && Number.isFinite(trustedMs)) {
+          setClockOffset(trustedMs - Date.now());
+        }
+      } catch (e) {
+        // اگر همگام‌سازی شکست بخورد، آفست قبلی (یا صفر) همچنان به‌کار می‌رود
+      }
+    };
+    sync();
+    const id = setInterval(sync, 10 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
   useEffect(() => {
     saveState(state);
   }, [state]);
@@ -43,8 +82,8 @@ export default function App() {
   useEffect(() => {
     const fmt = tehranClockFormatter();
     const tick = () => {
-      setClock(fmt.format(new Date()));
-      setTodayJalali(tehranJalaliParts(new Date()));
+      setClock(fmt.format(appNow()));
+      setTodayJalali(tehranJalaliParts(appNow()));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -73,7 +112,7 @@ export default function App() {
      وقتی فیلتر فعال است: فقط واریزی‌های داخل بازه حساب می‌شود و امتیاز «تا تاریخ پایانِ بازه» است.
      وقتی فیلتر پاک شود: خودکار به حالت عادی (همه‌ی واریزی‌ها، تا همین الان) برمی‌گردد. */
   const customerRows = useMemo(() => {
-    const referenceDate = depositFilter ? jalaliDateObjFromParts(...depositFilter.toJ) : new Date();
+    const referenceDate = depositFilter ? jalaliDateObjFromParts(...depositFilter.toJ) : appNow();
     return state.customers
       .map((c) => {
         const myDeposits = state.deposits.filter(
@@ -108,7 +147,7 @@ export default function App() {
 
   /* ----- تاریخچه‌ی کامل واریزی‌های هر مشتری، همیشه تا همین الان (مستقل از فیلتر/جستجوی ستون واریزی) ----- */
   const allDepositsWithPoints = useMemo(() => {
-    const now = new Date();
+    const now = appNow();
     return state.deposits
       .map((d) => ({
         ...d,
@@ -125,7 +164,7 @@ export default function App() {
   const [depositSearch, setDepositSearch] = useState("");
 
   const individualDeposits = useMemo(() => {
-    const referenceDate = depositFilter ? jalaliDateObjFromParts(...depositFilter.toJ) : new Date();
+    const referenceDate = depositFilter ? jalaliDateObjFromParts(...depositFilter.toJ) : appNow();
     const q = depositSearch.trim();
     return state.deposits
       .filter((d) => isWithinRange(d.jy, d.jm, d.jd, depositFilter))
@@ -257,19 +296,37 @@ export default function App() {
   };
 
   /* ----- خروجی / ورودی JSON (بک‌آپ) ----- */
-  const handleExport = () => {
-    exportStateToFile(state);
-    showToast("فایل پشتیبان دانلود شد");
+  const handleExport = async () => {
+    const result = await exportStateToFile(state);
+    if (result?.canceled) return;
+    if (result?.error) {
+      showToast("خطا در ذخیره‌ی فایل پشتیبان");
+      return;
+    }
+    showToast(isElectron() ? "فایل پشتیبان ذخیره شد" : "فایل پشتیبان دانلود شد");
   };
 
   const handleImportFile = async (file) => {
     try {
       const imported = await importStateFromFile(file);
+      if (!imported) return; // کاربر پنجره‌ی انتخاب فایل را بست
       setState((s) => mergeImportedState(s, imported));
       showToast("اطلاعات فایل با موفقیت اضافه شد");
     } catch (err) {
       showToast("خطا در خواندن فایل. فرمت را بررسی کنید");
     }
+  };
+
+  /* ----- چاپ ----- */
+  const handlePrintAllCustomers = () => {
+    printCustomersList(customerRows);
+  };
+
+  const handlePrintCustomer = (customerId) => {
+    const customer = state.customers.find((c) => c.id === customerId);
+    if (!customer) return;
+    const deposits = allDepositsWithPoints.filter((d) => d.customerId === customerId);
+    printCustomerDetail(customer, deposits);
   };
 
   const editingCustomer = modal?.type === "customer" ? state.customers.find((c) => c.id === modal.editId) : null;
@@ -291,7 +348,7 @@ export default function App() {
               <div className="latest-label">آخرین واریزی ثبت‌شده</div>
               <div className="latest-main">
                 <span className="latest-name">{latestOverallDeposit.customerName}</span>
-                <span className="latest-amount">{formatToman(latestOverallDeposit.amount)}</span>
+                <span className="latest-amount">{formatRial(latestOverallDeposit.amount)}</span>
                 <span className="latest-date">
                   {formatJalali(latestOverallDeposit.jy, latestOverallDeposit.jm, latestOverallDeposit.jd)}
                 </span>
@@ -309,7 +366,7 @@ export default function App() {
               <div className="latest-label">آخرین ابلاغیه ثبت‌شده</div>
               <div className="latest-main">
                 <span className="latest-name">ابلاغیه {latestOverallNotice.noticeNumber}</span>
-                <span className="latest-amount">{formatToman(latestOverallNotice.amount)}</span>
+                <span className="latest-amount">{formatRial(latestOverallNotice.amount)}</span>
                 <span className="latest-date">
                   {formatJalali(latestOverallNotice.jy, latestOverallNotice.jm, latestOverallNotice.jd)}
                 </span>
@@ -323,7 +380,7 @@ export default function App() {
         <div className="stat-chip">
           <Icon.coin color="#5fb4a2" />
           <div>
-            <div className="stat-value">{formatToman(totals.totalDeposits)}</div>
+            <div className="stat-value">{formatRial(totals.totalDeposits)}</div>
             <div className="stat-label">مجموع کل واریزی‌ها</div>
           </div>
         </div>
@@ -337,6 +394,12 @@ export default function App() {
           actionLabel="اضافه کردن مشتری"
           onAction={() => setModal({ type: "customer" })}
           icon={<Icon.plus />}
+          extraActions={
+            <button className="filter-btn" onClick={handlePrintAllCustomers}>
+              <Icon.print />
+              چاپ همه
+            </button>
+          }
         >
           <div className="search-bar-wrap">
             <Icon.search className="search-icon" />
@@ -385,6 +448,7 @@ export default function App() {
                   onEdit={() => setModal({ type: "customer", editId: c.id })}
                   onDelete={() => deleteCustomer(c.id)}
                   onViewHistory={() => setModal({ type: "customerHistory", editId: c.id })}
+                  onPrint={() => handlePrintCustomer(c.id)}
                 />
               ))}
               {customerShowMore.hasMore && (

@@ -3,6 +3,23 @@
    مستقل از تنظیمات دستی ساعت سیستم و بدون نیاز به اینترنت
    ============================================================ */
 
+/**
+ * اختلاف (به میلی‌ثانیه) بین «زمان قابل اعتماد» و ساعت خام سیستم.
+ * در نسخه‌ی وب همیشه صفر است (به ساعت مرورگر اعتماد می‌شود).
+ * در نسخه‌ی دسکتاپ (Electron)، هنگام راه‌اندازی و به‌صورت دوره‌ای از طریق
+ * setClockOffset با نتیجه‌ی همگام‌سازی زمان (آنلاین یا بر پایه‌ی uptime سیستم) پر می‌شود.
+ */
+let clockOffsetMs = 0;
+
+export function setClockOffset(ms) {
+  if (Number.isFinite(ms)) clockOffsetMs = ms;
+}
+
+/** «الان»ِ قابل‌اعتماد برنامه؛ همه‌جای کد به‌جای `new Date()` از این استفاده می‌شود. */
+export function appNow() {
+  return new Date(Date.now() + clockOffsetMs);
+}
+
 export function gregorianToJalali(gy, gm, gd) {
   const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
   let jy = gy <= 1600 ? 0 : 979;
@@ -121,7 +138,7 @@ export function daysBetween(dateA, dateB) {
  * طبق درخواست: همان روزی که واریزی ثبت می‌شود باید اولین امتیاز را بگیرد،
  * پس یک روز به فاصله‌ی محاسبه‌شده اضافه می‌شود (روز صفر هم حساب می‌شود).
  */
-export function computeAutoPoints(amount, jy, jm, jd, referenceDate = new Date()) {
+export function computeAutoPoints(amount, jy, jm, jd, referenceDate = appNow()) {
   const depDate = jalaliDateObjFromParts(jy, jm, jd);
   const daysPassed = Math.max(0, daysBetween(depDate, referenceDate)) + 1;
   const millions = Math.floor((Number(amount) || 0) / 1000000);
@@ -132,9 +149,9 @@ export function formatJalali(jy, jm, jd) {
   return `${jd} ${JALALI_MONTHS[jm - 1]} ${jy}`;
 }
 
-export function formatToman(n) {
+export function formatRial(n) {
   const num = Number(n) || 0;
-  return num.toLocaleString("fa-IR") + " تومان";
+  return num.toLocaleString("fa-IR") + " ریال";
 }
 
 /**
@@ -142,9 +159,9 @@ export function formatToman(n) {
  * بین یک تاریخ شمسیِ ثبت‌شده و لحظه‌ی حال، به‌صورت زنده و خوانا.
  * مثال خروجی: «۲ سال و ۳ ماه و ۱ هفته و ۳ روز و ۲ ساعت و ۴ دقیقه و ۵ ثانیه»
  */
-export function elapsedSinceJalali(jy, jm, jd, now = new Date()) {
+export function elapsedSinceJalali(jy, jm, jd, referenceNow = appNow()) {
   const start = jalaliDateObjFromParts(jy, jm, jd);
-  let diffMs = now.getTime() - start.getTime();
+  let diffMs = referenceNow.getTime() - start.getTime();
   if (diffMs < 0) diffMs = 0;
 
   let totalSeconds = Math.floor(diffMs / 1000);

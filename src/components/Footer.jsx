@@ -1,11 +1,18 @@
 import React, { useRef } from "react";
 import { Icon } from "./Icons";
+import { isElectron } from "../utils/storage";
+import logo from "../assets/logo.png";
 
 export function Footer({ onExport, onImportFile }) {
   const fileInputRef = useRef(null);
 
   const handleImportClick = () => {
-    fileInputRef.current?.click();
+    if (isElectron()) {
+      // در دسکتاپ نیازی به input فایل مرورگر نیست؛ پنجره‌ی بومی ویندوز خودش باز می‌شود
+      onImportFile(null);
+    } else {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = (e) => {
@@ -18,13 +25,13 @@ export function Footer({ onExport, onImportFile }) {
     <footer className="app-footer">
       <div className="footer-brand">
         <div className="footer-logo">
-          <Icon.logo />
+          <img src={logo} alt="لوگو" className="footer-logo-img" />
         </div>
-        <span className="footer-name">تعاونی آسمان شهر هلیا</span>
+        <span className="footer-name">شرکت تعاونی آسمان شهر هلیا</span>
       </div>
 
       <div className="footer-actions">
-        <button className="footer-btn" onClick={onExport} title="دریافت فایل پشتیبان JSON">
+        <button className="footer-btn" onClick={onExport} title="ذخیره‌ی فایل پشتیبان JSON">
           <Icon.download />
           خروجی گرفتن (Export)
         </button>
@@ -32,13 +39,15 @@ export function Footer({ onExport, onImportFile }) {
           <Icon.upload />
           وارد کردن (Import)
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
+        {!isElectron() && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
+        )}
       </div>
     </footer>
   );

@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { ModalShell } from "./ModalShell";
-import { Field, JalaliDateFields } from "./Shared";
+import { Field, JalaliDateFields, FormattedAmountInput } from "./Shared";
 import { SearchableSelect } from "./SearchableSelect";
-import { tehranJalaliParts, formatToman } from "../utils/dateUtils";
+import { tehranJalaliParts, formatRial } from "../utils/dateUtils";
 
 export function DepositModal({ customers, notices, initial, defaultCustomerId, onClose, onSubmit, onDelete }) {
   const today = tehranJalaliParts(new Date());
   const [form, setForm] = useState({
     customerId: initial?.customerId || defaultCustomerId || "",
+    depositType: initial?.depositType || "cash",
     receiptNumber: initial?.receiptNumber || "",
+    description: initial?.description || "",
     amount: initial?.amount || "",
     jy: initial?.jy || today[0],
     jm: initial?.jm || today[1],
@@ -22,7 +24,7 @@ export function DepositModal({ customers, notices, initial, defaultCustomerId, o
   const customerOptions = customers.map((c) => ({ id: c.id, label: `${c.firstName} ${c.lastName}` }));
   const noticeOptions = notices.map((n) => ({
     id: n.id,
-    label: `ابلاغیه ${n.noticeNumber} — ${formatToman(n.amount)}`,
+    label: `ابلاغیه ${n.noticeNumber} — ${formatRial(n.amount)}`,
   }));
 
   const submit = (e) => {
@@ -41,9 +43,40 @@ export function DepositModal({ customers, notices, initial, defaultCustomerId, o
   return (
     <ModalShell title={initial ? "ویرایش واریزی" : "اضافه کردن واریزی"} onClose={onClose} onDelete={onDelete}>
       <form onSubmit={submit} className="form">
-        <Field label="شماره فیش">
-          <input className="input" value={form.receiptNumber} onChange={set("receiptNumber")} />
+        <Field label="نوع واریزی">
+          <div className="type-toggle">
+            <button
+              type="button"
+              className={`type-toggle-btn ${form.depositType === "cash" ? "active" : ""}`}
+              onClick={() => setForm((f) => ({ ...f, depositType: "cash" }))}
+            >
+              نقدی
+            </button>
+            <button
+              type="button"
+              className={`type-toggle-btn ${form.depositType === "noncash" ? "active" : ""}`}
+              onClick={() => setForm((f) => ({ ...f, depositType: "noncash" }))}
+            >
+              غیر نقدی
+            </button>
+          </div>
         </Field>
+
+        {form.depositType === "cash" ? (
+          <Field label="شماره فیش">
+            <input className="input" value={form.receiptNumber} onChange={set("receiptNumber")} />
+          </Field>
+        ) : (
+          <Field label="شرح / بابت">
+            <input
+              className="input"
+              value={form.description}
+              onChange={set("description")}
+              placeholder="مثلاً: بابت تهاتر با فاکتور..."
+            />
+          </Field>
+        )}
+
         <Field label="مشتری (اسم و فامیل)">
           <SearchableSelect
             options={customerOptions}
@@ -53,8 +86,12 @@ export function DepositModal({ customers, notices, initial, defaultCustomerId, o
             emptyText="مشتری‌ای یافت نشد"
           />
         </Field>
-        <Field label="مقدار واریزی (تومان)">
-          <input className="input" type="number" value={form.amount} onChange={set("amount")} required inputMode="numeric" />
+        <Field label="مقدار واریزی (ریال)">
+          <FormattedAmountInput
+            value={form.amount}
+            onChange={(v) => setForm((f) => ({ ...f, amount: v }))}
+            required
+          />
         </Field>
         <Field label="تاریخ واریزی (شمسی)">
           <JalaliDateFields jy={form.jy} jm={form.jm} jd={form.jd} onChange={(v) => setForm((f) => ({ ...f, ...v }))} />

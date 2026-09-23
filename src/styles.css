@@ -90,10 +90,12 @@ input:focus, select:focus, button:focus-visible {
 .brand-row { display: flex; align-items: center; gap: 14px; }
 .brand-mark {
   width: 52px; height: 52px; border-radius: 16px;
-  background: linear-gradient(135deg, #c98bd6, #5fb4a2);
+  background: #ffffff;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 10px 24px -8px rgba(120,90,160,0.45);
+  padding: 6px;
 }
+.brand-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .brand-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; color: #3a2f4d; }
 .brand-sub { margin: 2px 0 0; font-size: 13.5px; color: #8577a0; }
 
@@ -284,6 +286,9 @@ input:focus, select:focus, button:focus-visible {
 .card-meta-row { display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .card-meta-tag { font-size: 12px; color: #8577a0; background: #faf7fd; padding: 2px 8px; border-radius: 8px; }
 .total-deposit-tag { color: #4d8f7f; background: #eaf6f2; font-weight: 700; }
+.deposit-type-tag { font-weight: 700; }
+.deposit-type-tag.cash { color: #4d8f7f; background: #eaf6f2; }
+.deposit-type-tag.noncash { color: #b3792f; background: #fbf1e2; }
 .points-row { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
 .points-value { font-weight: 800; font-size: 14px; color: #c88a3a; }
 .points-label { font-size: 11.5px; color: #a396bc; }
@@ -381,6 +386,17 @@ input:focus, select:focus, button:focus-visible {
   padding: 11px; border-radius: 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;
 }
 
+/* ---------- تاگل نوع واریزی (نقدی / غیر نقدی) ---------- */
+.type-toggle { display: flex; gap: 8px; }
+.type-toggle-btn {
+  flex: 1; border: 1.5px solid #ece2f5; background: #fbf9fd; color: #8577a0;
+  padding: 10px; border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.type-toggle-btn.active {
+  background: linear-gradient(120deg, #c98bd6, #8a6fb0); color: #fff; border-color: transparent;
+}
+
 /* ---------- فوتر ---------- */
 .app-footer {
   position: relative; z-index: 1;
@@ -394,6 +410,7 @@ input:focus, select:focus, button:focus-visible {
 }
 .footer-brand { display: flex; align-items: center; gap: 10px; }
 .footer-logo { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.footer-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .footer-name { font-weight: 700; font-size: 14.5px; color: #6f6288; }
 .footer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .footer-btn {

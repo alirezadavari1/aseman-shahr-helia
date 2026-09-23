@@ -2,7 +2,7 @@ import React from "react";
 import { ModalShell } from "./ModalShell";
 import { Icon } from "./Icons";
 import { ElapsedTimer } from "./ElapsedTimer";
-import { formatToman, formatJalali } from "../utils/dateUtils";
+import { formatRial, formatJalali } from "../utils/dateUtils";
 
 /**
  * تاریخچه‌ی کامل واریزی‌های یک مشتری خاص — هر فیش با تمام جزئیات
@@ -20,7 +20,7 @@ export function CustomerHistoryModal({ customer, deposits, onClose, onEditDeposi
           <span className="history-summary-label">تعداد فیش</span>
         </div>
         <div className="history-summary-item">
-          <span className="history-summary-value">{formatToman(totalAmount)}</span>
+          <span className="history-summary-value">{formatRial(totalAmount)}</span>
           <span className="history-summary-label">مجموع واریزی</span>
         </div>
         <div className="history-summary-item">
@@ -38,11 +38,16 @@ export function CustomerHistoryModal({ customer, deposits, onClose, onEditDeposi
               <div className="history-item-index">{idx + 1}</div>
               <div className="history-item-main">
                 <div className="history-item-top">
-                  <span className="history-item-receipt">فیش: {d.receiptNumber || "—"}</span>
-                  <span className="history-item-amount">{formatToman(d.amount)}</span>
+                  <span className="history-item-receipt">
+                    {d.depositType === "noncash" ? `غیر نقدی: ${d.description || "—"}` : `فیش: ${d.receiptNumber || "—"}`}
+                  </span>
+                  <span className="history-item-amount">{formatRial(d.amount)}</span>
                 </div>
                 <div className="history-item-meta">
                   <span className="card-meta-tag">{formatJalali(d.jy, d.jm, d.jd)}</span>
+                  <span className={`card-meta-tag deposit-type-tag ${d.depositType === "noncash" ? "noncash" : "cash"}`}>
+                    {d.depositType === "noncash" ? "غیر نقدی" : "نقدی"}
+                  </span>
                   <span className="card-meta-tag">
                     <Icon.star color="#e0a458" style={{ verticalAlign: "-2px", marginLeft: 4 }} />
                     {d.points.toLocaleString("fa-IR")} امتیاز
